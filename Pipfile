@@ -1,0 +1,39 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://pypi.org/pypi"
+verify_ssl = true
+name = "pypi-217"
+
+[packages]
+scikit-learn = "*"
+pandas = "*"
+numpy = "*"
+keras = "*"
+tensorflow = {extras = ["and-cuda"], version = "*"}
+beautifulsoup4 = "*"
+pillow = "*"
+matplotlib = "*"
+ttkbootstrap = "*"
+fastapi = "*"
+modal = "*"
+aiohttp-socks = "*"
+tqdm = "*"
+click = "*"
+pytest = "*"
+pytest-asyncio = "*"
+ufc-predictor = {file = ".", editable = true}
+requests-cache = "*"
+aiohttp-client-cache = {extras = ["all"], version = "*"}
+aiohttp-retry = "*"
+tenacity = "*"
+asyncer = "*"
+scrapy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

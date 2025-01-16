@@ -1,0 +1,8 @@
+pandas
+numpy
+scikit-learn
+tensorflow
+keras
+aiohttp
+beautifulsoup4
+python-dotenv 

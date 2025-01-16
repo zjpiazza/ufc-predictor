@@ -1,0 +1,7 @@
+__pycache__/
+# Active tunnels file
+.active_tunnels.json
+# Raw cache directory
+data/raw_cache/
+
+*.sqlite
