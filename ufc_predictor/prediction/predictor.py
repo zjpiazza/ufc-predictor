@@ -159,6 +159,7 @@ class UFCPredictor:
         expected_features = self.scaler.get_feature_names_out()
         
         # Calculate differences
+        weight_diff = fighter1_features['weight'] - fighter2_features['weight']
         height_diff = fighter1_features['height'] - fighter2_features['height']
         reach_diff = fighter1_features['reach'] - fighter2_features['reach']
         age_diff = (fighter1_features['age'] or 0) - (fighter2_features['age'] or 0)
@@ -169,7 +170,7 @@ class UFCPredictor:
             'height_diff': height_diff,
             'reach_diff': reach_diff,
             'age_diff': age_diff,
-            
+            'weight_diff': weight_diff,
             # Fighter features
             'fighter_fight_no': fighter1_features['total_fights'],
             'fighter_win_ratio': fighter1_features['win_ratio'],
@@ -205,8 +206,35 @@ class UFCPredictor:
         # Scale features
         X_scaled = self.scaler.transform(features)
         
-        # Get predictions
+        # Get initial predictions from model (based on all stats)
         probabilities = self.model.predict_proba(X_scaled)[0]
+        
+        # Adjust probabilities based on weight difference, but maintain influence of other factors
+        if abs(weight_diff) > 20:  # Only adjust for significant weight differences
+            if weight_diff > 0:  # Fighter 1 is heavier
+                weight_boost = 0  # Base boost value
+                if weight_diff > 60:
+                    weight_boost = 0.60  # +15% for major mismatches
+                elif weight_diff > 40:
+                    weight_boost = 0.30  # +10% for significant mismatches
+                elif weight_diff > 20:
+                    weight_boost = 0.10  # +5% for moderate mismatches
+                
+                # Blend original probability with weight advantage
+                p1_win = min(0.90, probabilities[1] + (weight_boost * (1 - probabilities[1])))
+                probabilities = np.array([1 - p1_win, p1_win])
+            else:  # Fighter 2 is heavier
+                weight_diff = abs(weight_diff)
+                weight_boost = 0
+                if weight_diff > 60:
+                    weight_boost = 0.60
+                elif weight_diff > 40:
+                    weight_boost = 0.30
+                elif weight_diff > 20:
+                    weight_boost = 0.10
+                
+                p2_win = min(0.90, probabilities[0] + (weight_boost * (1 - probabilities[0])))
+                probabilities = np.array([p2_win, 1 - p2_win])
         
         # Create result dictionary with physical differences included
         result = {
@@ -220,10 +248,10 @@ class UFCPredictor:
                 fighter1_name: fighter1_features['form_score'],
                 fighter2_name: fighter2_features['form_score']
             },
-            # Add physical differences
             'height_diff': height_diff,
             'reach_diff': reach_diff,
-            'age_diff': age_diff
+            'age_diff': age_diff,
+            'weight_diff': weight_diff
         }
         
         return result
@@ -246,3 +274,19 @@ class UFCPredictor:
             return 'light_heavyweight'
         else:
             return 'heavyweight' 
+
+    def _calculate_weight_penalty(self, weight_diff: float) -> float:
+        """Calculate penalty factor for weight mismatches"""
+        # Exponential penalty for weight differences
+        return np.exp(abs(weight_diff) / 10.0)  # Adjust the divisor to control penalty strength
+
+    def _adjust_probabilities_for_weight(self, probabilities: np.ndarray, weight_diff: float) -> np.ndarray:
+        """Adjust win probabilities based on weight difference"""
+        if weight_diff > 0:  # Fighter 1 is heavier
+            factor = self._calculate_weight_penalty(weight_diff)
+            p1_new = min(0.90, probabilities[1] * factor)  # Cap at 90%
+            return np.array([1 - p1_new, p1_new])
+        else:  # Fighter 2 is heavier
+            factor = self._calculate_weight_penalty(weight_diff)
+            p2_new = min(0.90, probabilities[0] * factor)  # Cap at 90%
+            return np.array([p2_new, 1 - p2_new]) 

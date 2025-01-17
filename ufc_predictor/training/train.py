@@ -101,7 +101,8 @@ class UFCModelTrainer:
         
         # Define our expected feature columns based on the new preprocessing
         self.feature_columns = [
-            # Physical differences
+            # Physical differences (weight first as it's most important)
+            'weight_diff',  # Add weight difference back
             'height_diff', 'reach_diff', 'age_diff',
             
             # Form and experience
@@ -152,9 +153,17 @@ class UFCModelTrainer:
             X, y, test_size=0.2, random_state=42, stratify=y
         )
         
-        # Scale features
+        # Special handling for weight difference - don't scale it to preserve its impact
+        weight_values = self.X_train['weight_diff'].values.copy()
+        
+        # Convert to numpy and scale other features
         self.X_train = self.scaler.fit_transform(self.X_train)
         self.X_test = self.scaler.transform(self.X_test)
+        
+        # Put weight differences back unscaled
+        weight_col_idx = self.feature_columns.index('weight_diff')
+        self.X_train[:, weight_col_idx] = weight_values
+        self.X_test[:, weight_col_idx] = self.X_test[:, weight_col_idx] * self.scaler.scale_[weight_col_idx] + self.scaler.mean_[weight_col_idx]
         
         self.logger.info(f"Training samples: {len(self.X_train)}, Test samples: {len(self.X_test)}")
         self.logger.info(f"Feature count: {len(self.feature_columns)}")

@@ -288,10 +288,14 @@ class UFCDataPreprocessor:
         features = []
         
         for _, fight in fight_stats.iterrows():
+            # Calculate weight difference
+            weight_diff = fight['fighter1_weight'] - fight['fighter2_weight']
+            
             feature = {
                 'win': 1 if fight['winner'] == fight['fighter1_name'] else 0,
                 
-                # Physical differences with weight class emphasis
+                # Physical differences with weight first
+                'weight_diff': weight_diff,  # Add weight back
                 'height_diff': fight['fighter1_height'] - fight['fighter2_height'],
                 'reach_diff': fight['fighter1_reach'] - fight['fighter2_reach'],
                 'age_diff': fight['fighter1_age'] - fight['fighter2_age'],

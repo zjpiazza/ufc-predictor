@@ -78,6 +78,8 @@ def predict(fighter1: str, fighter2: str):
         print(f"Confidence: {result['confidence']*100:.1f}%")
         
         print(f"\nPhysical Differences:")
+        
+        print(f"Weight diff: {result['weight_diff']:.1f} lbs")
         print(f"Height diff: {result['height_diff']:.1f} cm")
         print(f"Reach diff: {result['reach_diff']:.1f} cm")
         
