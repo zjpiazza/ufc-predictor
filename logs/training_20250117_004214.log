@@ -1,0 +1,6 @@
+2025-01-17 00:42:14,555 - 📊 Loading and preprocessing data...
+2025-01-17 00:42:14,588 - ✨ Created interaction features
+2025-01-17 00:42:14,602 - ✅ Data preprocessing completed
+2025-01-17 00:42:14,602 - Training samples: 6275, Test samples: 1569
+2025-01-17 00:42:14,603 - 
+🥊 Starting UFC fight prediction model training...

@@ -1,9 +1,6 @@
 import bs4
 from datetime import datetime
-from aiohttp_client_cache import CachedSession
-from typing import Optional
 from .base_parser import BaseParser
-from asyncer import asyncify
 from tqdm.asyncio import tqdm
 
 async def get_events_list(session):

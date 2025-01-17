@@ -1,0 +1,52 @@
+2025-01-17 09:50:45,434 - 🥊 Starting UFC model training pipeline...
+2025-01-17 09:50:45,434 - 📊 Loading and preparing data...
+2025-01-17 09:50:45,447 - Found NaN values in the following columns:
+2025-01-17 09:50:45,447 - reach_diff: 1 NaN values
+2025-01-17 09:50:45,447 - Filling NaN values with 0
+2025-01-17 09:50:45,461 - Training samples: 1364, Test samples: 342
+2025-01-17 09:50:45,461 - Feature count: 89
+2025-01-17 09:50:45,461 - 
+🧠 Training neural network...
+2025-01-17 09:50:55,203 - 
+📈 Training logistic regression...
+2025-01-17 09:50:55,209 - 
+🎯 Evaluating models...
+2025-01-17 09:50:55,804 - 
+💾 Saving models...
+2025-01-17 09:50:55,804 - You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+2025-01-17 09:50:55,822 - 
+📊 Model Performance:
+2025-01-17 09:50:55,822 - 
+Neural Network:
+2025-01-17 09:50:55,822 - Accuracy: 0.5848
+2025-01-17 09:50:55,822 - ROC AUC: 0.6113
+2025-01-17 09:50:55,822 - 
+Classification Report:
+2025-01-17 09:50:55,864 - 
+              precision    recall  f1-score   support
+
+           0       0.50      0.55      0.53       143
+           1       0.65      0.61      0.63       199
+
+    accuracy                           0.58       342
+   macro avg       0.58      0.58      0.58       342
+weighted avg       0.59      0.58      0.59       342
+
+2025-01-17 09:50:55,864 - 
+Logistic Regression:
+2025-01-17 09:50:55,864 - Accuracy: 0.6404
+2025-01-17 09:50:55,864 - ROC AUC: 0.6955
+2025-01-17 09:50:55,864 - 
+Classification Report:
+2025-01-17 09:50:55,867 - 
+              precision    recall  f1-score   support
+
+           0       0.60      0.41      0.49       143
+           1       0.66      0.80      0.72       199
+
+    accuracy                           0.64       342
+   macro avg       0.63      0.61      0.61       342
+weighted avg       0.63      0.64      0.63       342
+
+2025-01-17 09:50:55,867 - 
+🎉 Training pipeline completed successfully!

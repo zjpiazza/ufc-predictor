@@ -1,0 +1,9 @@
+2025-01-17 00:19:18,041 - 📊 Loading and preprocessing data...
+2025-01-17 00:19:18,076 - ✨ Created interaction features
+2025-01-17 00:19:18,090 - ✅ Data preprocessing completed
+2025-01-17 00:19:18,090 - Training samples: 6275, Test samples: 1569
+2025-01-17 00:19:18,090 - 
+🚀 Starting model training...
+2025-01-17 00:19:18,092 - Converting data to DMatrix format...
+2025-01-17 00:19:24,739 - 
+📊 Initial baseline score: 0.7052

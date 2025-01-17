@@ -1,0 +1,9 @@
+2025-01-17 00:39:58,817 - 📊 Loading and preprocessing data...
+2025-01-17 00:39:58,851 - ✨ Created interaction features
+2025-01-17 00:39:58,865 - ✅ Data preprocessing completed
+2025-01-17 00:39:58,866 - Training samples: 6275, Test samples: 1569
+2025-01-17 00:39:58,866 - 
+🥊 Starting UFC fight prediction model training...
+2025-01-17 00:39:58,910 - build_posterior_wrapper took 0.001266 seconds
+2025-01-17 00:39:58,910 - TPE using 0 trials
+2025-01-17 00:40:07,148 - job exception: 'iterations'

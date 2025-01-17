@@ -1,0 +1,12 @@
+2025-01-17 00:11:37,386 - 📊 Loading and preprocessing data...
+2025-01-17 00:11:37,419 - ✨ Created interaction features
+2025-01-17 00:11:37,434 - ✅ Data preprocessing completed
+2025-01-17 00:11:37,434 - Training samples: 6275, Test samples: 1569
+2025-01-17 00:11:37,434 - 
+🚀 Starting model training...
+2025-01-17 00:11:37,434 - Converting data to DMatrix format...
+2025-01-17 00:11:56,255 - 
+⭐ New best score at iteration 1/100:
+2025-01-17 00:11:56,256 - Score: 0.7132
+2025-01-17 00:11:56,256 - Time elapsed: 18.8s
+2025-01-17 00:11:56,256 - Parameters: {'max_depth': np.int64(4), 'eta': '0.010', 'subsample': '0.800', 'colsample_bytree': '0.900', 'min_child_weight': np.int64(3), 'gamma': '0.100'}

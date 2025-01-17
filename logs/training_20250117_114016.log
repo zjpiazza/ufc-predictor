@@ -1,0 +1,95 @@
+2025-01-17 11:40:16,452 - 🥊 Starting UFC model training pipeline...
+2025-01-17 11:40:16,452 - 📊 Loading and preparing data...
+2025-01-17 11:40:16,458 - Found NaN values in the following columns:
+2025-01-17 11:40:16,458 - reach_diff: 1 NaN values
+2025-01-17 11:40:16,458 - Filling NaN values with 0
+2025-01-17 11:40:16,464 - Training samples: 1364, Test samples: 342
+2025-01-17 11:40:16,464 - Feature count: 25
+2025-01-17 11:40:16,464 - 
+Features used:
+2025-01-17 11:40:16,464 - - height_diff
+2025-01-17 11:40:16,464 - - reach_diff
+2025-01-17 11:40:16,464 - - age_diff
+2025-01-17 11:40:16,464 - - fighter_fight_no
+2025-01-17 11:40:16,464 - - opponent_fight_no
+2025-01-17 11:40:16,464 - - fighter_win_ratio
+2025-01-17 11:40:16,464 - - fighter_recent_win_ratio
+2025-01-17 11:40:16,464 - - opponent_win_ratio
+2025-01-17 11:40:16,464 - - opponent_recent_win_ratio
+2025-01-17 11:40:16,464 - - fighter_strikes_landed
+2025-01-17 11:40:16,464 - - fighter_strikes_attempted
+2025-01-17 11:40:16,464 - - fighter_strikes_accuracy
+2025-01-17 11:40:16,464 - - opponent_strikes_landed
+2025-01-17 11:40:16,464 - - opponent_strikes_attempted
+2025-01-17 11:40:16,464 - - opponent_strikes_accuracy
+2025-01-17 11:40:16,464 - - fighter_takedowns
+2025-01-17 11:40:16,464 - - fighter_takedown_accuracy
+2025-01-17 11:40:16,464 - - opponent_takedowns
+2025-01-17 11:40:16,464 - - opponent_takedown_accuracy
+2025-01-17 11:40:16,464 - - fighter_knockdowns
+2025-01-17 11:40:16,465 - - fighter_ko_ratio
+2025-01-17 11:40:16,465 - - opponent_knockdowns
+2025-01-17 11:40:16,465 - - opponent_ko_ratio
+2025-01-17 11:40:16,465 - - fighter_control_time
+2025-01-17 11:40:16,465 - - opponent_control_time
+2025-01-17 11:40:16,465 - 
+🧠 Training neural network...
+2025-01-17 11:40:26,258 - 
+📈 Training logistic regression...
+2025-01-17 11:40:26,262 - 
+🎯 Evaluating models...
+2025-01-17 11:40:26,683 - 
+🎲 Random Baseline Validation - neural_network:
+2025-01-17 11:40:26,683 - Model Accuracy: 0.6170
+2025-01-17 11:40:26,683 - Random Baseline: 0.5000
+2025-01-17 11:40:26,683 - Chi-square statistic: 12.2238
+2025-01-17 11:40:26,683 - P-value: 0.0005
+2025-01-17 11:40:26,683 - ✅ Model performs significantly better than random (p < 0.05)
+2025-01-17 11:40:26,683 - Effect size (Cramer's V): 0.1891
+2025-01-17 11:40:26,804 - 
+🎲 Random Baseline Validation - logistic_regression:
+2025-01-17 11:40:26,804 - Model Accuracy: 0.6462
+2025-01-17 11:40:26,804 - Random Baseline: 0.5000
+2025-01-17 11:40:26,804 - Chi-square statistic: 19.4645
+2025-01-17 11:40:26,804 - P-value: 0.0000
+2025-01-17 11:40:26,804 - ✅ Model performs significantly better than random (p < 0.05)
+2025-01-17 11:40:26,804 - Effect size (Cramer's V): 0.2386
+2025-01-17 11:40:26,946 - 
+💾 Saving models...
+2025-01-17 11:40:26,946 - You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+2025-01-17 11:40:26,960 - 
+📊 Model Performance:
+2025-01-17 11:40:26,960 - 
+Neural Network:
+2025-01-17 11:40:26,960 - Accuracy: 0.6170
+2025-01-17 11:40:26,960 - ROC AUC: 0.6060
+2025-01-17 11:40:26,960 - 
+Classification Report:
+2025-01-17 11:40:26,999 - 
+              precision    recall  f1-score   support
+
+           0       0.55      0.45      0.50       143
+           1       0.65      0.73      0.69       199
+
+    accuracy                           0.62       342
+   macro avg       0.60      0.59      0.59       342
+weighted avg       0.61      0.62      0.61       342
+
+2025-01-17 11:40:26,999 - 
+Logistic Regression:
+2025-01-17 11:40:26,999 - Accuracy: 0.6462
+2025-01-17 11:40:26,999 - ROC AUC: 0.6935
+2025-01-17 11:40:26,999 - 
+Classification Report:
+2025-01-17 11:40:27,002 - 
+              precision    recall  f1-score   support
+
+           0       0.64      0.35      0.45       143
+           1       0.65      0.86      0.74       199
+
+    accuracy                           0.65       342
+   macro avg       0.64      0.60      0.60       342
+weighted avg       0.64      0.65      0.62       342
+
+2025-01-17 11:40:27,002 - 
+🎉 Training pipeline completed successfully!

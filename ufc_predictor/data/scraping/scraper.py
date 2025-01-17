@@ -31,12 +31,12 @@ class UFCScraper:
         async with self:  # This will handle session creation and cleanup
             events = await self.scrape_events_data()
             
-            merged_fight_ids = []
+            event_fight_map = {}
             for event in events:
-                merged_fight_ids.extend(event['event_fight_ids'])
+                event_fight_map[event['event_id']] = event['event_fight_ids']
                 del event['event_fight_ids']
             
-            fights = await self.scrape_fights_data(merged_fight_ids)
+            fights = await self.scrape_fights_data(event_fight_map)
 
 
             per_round_fight_stats = []
@@ -58,14 +58,18 @@ class UFCScraper:
             self.save_fighter_data(fighters)
 
 
-    async def scrape_events_data(self):
+    async def scrape_events_data(self, event_count: int = -1):
         events_list = await get_events_list(self.session)
         events = []
-        pbar = tqdm(total=len(events_list[:-30]), desc="Scraping events")
+        
+        # event_stop_index = event_count - len(events_list) if event_count != -1 else len(events_list)
+
+        event_subset = events_list[:-30]
+        pbar = tqdm(total=len(event_subset), desc="Scraping events")
 
         async with asyncer.create_task_group() as task_group:
             # Process each event
-            for event in events_list[:-30]:  # Limiting to 3 events for testing
+            for event in event_subset:  # Limiting to 3 events for testing
                 # Get event data
                 event_parser = EventParser(event, self.session, zyte=True)
                 event_data = task_group.soonify(event_parser.get_event_data)(pbar=pbar)
@@ -74,17 +78,20 @@ class UFCScraper:
         pbar.close()
         return [event.value for event in events]
 
-    async def scrape_fights_data(self, fight_ids: list[str]):
+    async def scrape_fights_data(self, event_fight_map: dict[str, list[str]]):
         fights = []
-        pbar = tqdm(total=len(fight_ids), desc="Scraping fights")
+
+        total_fights = len([fight_id for fight_ids in event_fight_map.values() for fight_id in fight_ids])
+
+        pbar = tqdm(total=total_fights, desc="Scraping fights")
 
         async with asyncer.create_task_group() as task_group:
-            for fight_id in fight_ids:
-                fight_url = f"http://ufcstats.com/fight-details/{fight_id}"
-                fight_parser = FightParser(fight_url, self.session, zyte=True)
-                fight_data = task_group.soonify(fight_parser.get_fight_data)(pbar=pbar)
-                fights.append(fight_data)
-        
+            for event_id, fight_ids in event_fight_map.items():
+                for fight_id in fight_ids:
+                    fight_parser = FightParser(f"http://ufcstats.com/fight-details/{fight_id}", self.session, zyte=True)
+                    fight_data = task_group.soonify(fight_parser.get_fight_data)(pbar=pbar, event_id=event_id)
+                    fights.append(fight_data)
+
         pbar.close()
         return [fight.value for fight in fights]
 
@@ -112,8 +119,13 @@ class UFCScraper:
 
         for fight in fights:
 
-            fight_details.append(fight['fight_details'])
-            fight_stats_by_round.extend(fight['rounds'])
+            hydrated_fight_details = fight['fight_details'].copy()
+            hydrated_fight_details['event_id'] = fight['event_id']
+            fight_details.append(hydrated_fight_details)
+
+            for round in fight['rounds']:
+                round['event_id'] = fight['event_id']
+                fight_stats_by_round.append(round)
         
         fight_details_df = pd.DataFrame(fight_details)
         fight_stats_by_round_df = pd.DataFrame(fight_stats_by_round)

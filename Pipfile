@@ -15,23 +15,22 @@ numpy = "*"
 keras = "*"
 tensorflow = {extras = ["and-cuda"], version = "*"}
 beautifulsoup4 = "*"
-pillow = "*"
-matplotlib = "*"
-ttkbootstrap = "*"
-fastapi = "*"
-modal = "*"
-aiohttp-socks = "*"
 tqdm = "*"
 click = "*"
 pytest = "*"
 pytest-asyncio = "*"
-ufc-predictor = {file = ".", editable = true}
-requests-cache = "*"
 aiohttp-client-cache = {extras = ["all"], version = "*"}
-aiohttp-retry = "*"
 tenacity = "*"
 asyncer = "*"
-scrapy = "*"
+ufc-predictor = {file = ".", editable = true}
+anyio = "*"
+pydantic = "*"
+imblearn = "*"
+xgboost = "*"
+shap = "*"
+matplotlib = "*"
+ufcscraper = "*"
+hyperopt = "*"
 
 [dev-packages]
 

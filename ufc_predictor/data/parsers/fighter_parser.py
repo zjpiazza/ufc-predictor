@@ -1,13 +1,8 @@
 import bs4
-import requests_cache
-from pprint import pprint
 import re
 from datetime import datetime
-from aiohttp_client_cache import CachedSession
 from ufc_predictor.data.parsers.base_parser import BaseParser
-from asyncer import asyncify
 from tqdm.asyncio import tqdm   
-
 
 class FighterParser(BaseParser):
     

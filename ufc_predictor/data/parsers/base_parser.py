@@ -13,7 +13,7 @@ class BaseParser:
         self.object_id = url.split('/')[-1]
 
 
-    @retry(stop=stop_after_attempt(30), wait=wait_exponential(multiplier=1, min=4, max=40))
+    # @retry(stop=stop_after_attempt(30), wait=wait_exponential(multiplier=1, min=4, max=40))
     async def fetch_page_contents(self, url):
         # TODO: Handling errors
         if self.zyte:

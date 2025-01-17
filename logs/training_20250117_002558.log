@@ -1,0 +1,9 @@
+2025-01-17 00:25:58,420 - 📊 Loading and preprocessing data...
+2025-01-17 00:25:58,454 - ✨ Created interaction features
+2025-01-17 00:25:58,469 - ✅ Data preprocessing completed
+2025-01-17 00:25:58,469 - Training samples: 6275, Test samples: 1569
+2025-01-17 00:25:58,469 - 
+🥊 Starting UFC fight prediction model training...
+2025-01-17 00:25:58,471 - Converting fight data to DMatrix format...
+2025-01-17 00:26:19,249 - 
+📊 Initial baseline AUC: 0.7123

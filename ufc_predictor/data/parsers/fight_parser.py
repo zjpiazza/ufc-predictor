@@ -1,7 +1,5 @@
 import bs4
-from aiohttp_client_cache import CachedSession
 from .base_parser import BaseParser
-from asyncer import asyncify
 from tqdm.asyncio import tqdm   
 
 mens_weight_classes = [
@@ -27,10 +25,10 @@ womens_weight_classes = ["Strawweight", "Flyweight", "Bantamweight", "Featherwei
 
 class FightParser(BaseParser):
     
-    async def get_fight_data(self, pbar: tqdm) -> dict:
+    
+    async def get_fight_data(self, pbar: tqdm, event_id: str) -> dict:
     
         await self.get_soup()
-        
         # Get fighter IDs and names
         try:
             fighter_ids = self.get_fighter_ids()
@@ -52,8 +50,6 @@ class FightParser(BaseParser):
                 'error_details': str(e)
             }
         
-        rounds_data = {}
-        
         # Process each round's stats
         for round_num in range(1, fight_details['round'] + 1):
                 # Get both types of stats for this round
@@ -74,8 +70,16 @@ class FightParser(BaseParser):
         fight_details['fighter1_id'] = fighter_ids[0]
         fight_details['fighter2_id'] = fighter_ids[1]
 
+        winner = self.get_fight_winner()
+
+        if winner:
+            fight_details['winner_id'] = fighter_id_map[winner]
+        else:
+            fight_details['winner_id'] = None
+
         pbar.update(1)
         return {
+            'event_id': event_id,
             'fight_id': self.object_id,
             'fighter1_id': fighter_ids[0],
             'fighter2_id': fighter_ids[1],
@@ -83,7 +87,6 @@ class FightParser(BaseParser):
             'rounds': rounds
         }
             
-
 
     def get_fighter_names(self) -> list[str]:
         fighter_links = self.soup.find_all('a', 'b-link b-fight-details__person-link')
@@ -104,7 +107,16 @@ class FightParser(BaseParser):
             return "F"
         else:
             return "M"
-
+        
+    def get_fight_winner(self) -> str:
+        # TODO: Handle W/L/NC and decisions
+        # TODO: Handle draws?
+        # TODO: Handle split decisions?
+        for tag in self.soup.find_all('div', class_='b-fight-details__person'):
+            for i_text in tag.find_all('i'):
+                if "W" in i_text.get_text(strip=True):
+                    return tag.find('a', 'b-fight-details__person-link').get_text(strip=True)
+        return None
     def get_weight_class(self, gender: str) -> str:
         weight_class_element = self.soup.find('i','b-fight-details__fight-title')
         if not weight_class_element:

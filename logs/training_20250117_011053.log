@@ -1,0 +1,33 @@
+2025-01-17 01:10:53,847 - 📊 Loading and preprocessing data...
+2025-01-17 01:10:53,881 - ✨ Created interaction features
+2025-01-17 01:10:53,896 - ✅ Data preprocessing completed
+2025-01-17 01:10:53,896 - Training samples: 6275, Test samples: 1569
+2025-01-17 01:10:53,896 - 
+🥊 Starting UFC fight prediction model training...
+2025-01-17 01:12:27,019 - 
+🔄 Training final model with best parameters...
+2025-01-17 01:12:29,719 - 
+📊 Evaluating model performance...
+2025-01-17 01:12:29,767 - 
+📈 Model Performance:
+2025-01-17 01:12:29,767 - Accuracy: 0.6660
+2025-01-17 01:12:29,768 - ROC AUC: 0.7280
+2025-01-17 01:12:29,768 - 
+📋 Classification Report:
+2025-01-17 01:12:29,771 - 
+              precision    recall  f1-score   support
+
+         0.0       0.69      0.08      0.15       549
+         1.0       0.67      0.98      0.79      1020
+
+    accuracy                           0.67      1569
+   macro avg       0.68      0.53      0.47      1569
+weighted avg       0.67      0.67      0.57      1569
+
+2025-01-17 01:12:29,771 - 📊 Generating ROC curve plot...
+2025-01-17 01:12:29,872 - 📊 Analyzing feature importance...
+2025-01-17 01:12:30,082 - 
+💾 Saving model and scaler...
+2025-01-17 01:12:30,087 - ✅ Model and scaler saved successfully
+2025-01-17 01:12:30,087 - 
+🎉 Training pipeline completed successfully!
