@@ -291,7 +291,7 @@ class UFCDataPreprocessor:
             feature = {
                 'win': 1 if fight['winner'] == fight['fighter1_name'] else 0,
                 
-                # Physical differences
+                # Physical differences with weight class emphasis
                 'height_diff': fight['fighter1_height'] - fight['fighter2_height'],
                 'reach_diff': fight['fighter1_reach'] - fight['fighter2_reach'],
                 'age_diff': fight['fighter1_age'] - fight['fighter2_age'],
@@ -467,36 +467,3 @@ class UFCDataPreprocessor:
         self.logger.debug(f"  Final score: {score}")
         
         return score
-
-def create_fight_with_stats_precomp(fights_df, fighter_stats_df):
-    # ... existing code ...
-    
-    # Assuming fighter_stats_df has columns 'fighter_id' and 'name'
-    # Rename the existing ID columns
-    fights_df = fights_df.rename(columns={
-        'fighter1_name': 'fighter1_id',
-        'fighter2_name': 'fighter2_id'
-    })
-    
-    # Add the actual names by merging with fighter_stats_df
-    fights_df = fights_df.merge(
-        fighter_stats_df[['fighter_id', 'name']],
-        left_on='fighter1_id',
-        right_on='fighter_id',
-        how='left'
-    ).rename(columns={'name': 'fighter1_name'}).drop('fighter_id', axis=1)
-    
-    fights_df = fights_df.merge(
-        fighter_stats_df[['fighter_id', 'name']],
-        left_on='fighter2_id',
-        right_on='fighter_id',
-        how='left'
-    ).rename(columns={'name': 'fighter2_name'}).drop('fighter_id', axis=1)
-    
-    # Ensure the columns are in a sensible order
-    column_order = ['event_id', 'fight_id', 'fighter1_id', 'fighter1_name', 'fighter2_id', 'fighter2_name', 'winner'] + \
-                  [col for col in fights_df.columns if col not in ['event_id', 'fight_id', 'fighter1_id', 'fighter1_name', 'fighter2_id', 'fighter2_name', 'winner']]
-    
-    fights_df = fights_df[column_order]
-    
-    return fights_df

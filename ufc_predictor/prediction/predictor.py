@@ -208,18 +208,22 @@ class UFCPredictor:
         # Get predictions
         probabilities = self.model.predict_proba(X_scaled)[0]
         
-        # Create result dictionary
+        # Create result dictionary with physical differences included
         result = {
             'fighter1': fighter1_name,
             'fighter2': fighter2_name,
-            'probability_fighter1_wins': float(probabilities[1]),  # Probability of fighter1 winning
-            'probability_fighter2_wins': float(probabilities[0]),  # Probability of fighter2 winning
+            'probability_fighter1_wins': float(probabilities[1]),
+            'probability_fighter2_wins': float(probabilities[0]),
             'predicted_winner': fighter1_name if probabilities[1] > 0.5 else fighter2_name,
             'confidence': float(max(probabilities)),
             'form_scores': {
                 fighter1_name: fighter1_features['form_score'],
                 fighter2_name: fighter2_features['form_score']
-            }
+            },
+            # Add physical differences
+            'height_diff': height_diff,
+            'reach_diff': reach_diff,
+            'age_diff': age_diff
         }
         
         return result
