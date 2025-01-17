@@ -22,7 +22,6 @@ pytest-asyncio = "*"
 aiohttp-client-cache = {extras = ["all"], version = "*"}
 tenacity = "*"
 asyncer = "*"
-ufc-predictor = {file = ".", editable = true}
 anyio = "*"
 pydantic = "*"
 imblearn = "*"
@@ -31,6 +30,7 @@ shap = "*"
 matplotlib = "*"
 ufcscraper = "*"
 hyperopt = "*"
+ufc-predictor = {file = ".", editable = true}
 
 [dev-packages]
 
