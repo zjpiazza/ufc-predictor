@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import logging
 from ufc_predictor.schemas import rounds_dtypes
 from ufc_predictor.schemas import fights_dtypes
 from ufc_predictor.schemas import events_dtypes
 from ufc_predictor.schemas import fighters_dtypes
 from typing import Optional
+import matplotlib.pyplot as plt
 
 class UFCDataPreprocessor:
     def __init__(self):
@@ -15,6 +17,25 @@ class UFCDataPreprocessor:
         self.fighters_df = None
         self.output_dir = Path("data/processed")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        
+        # Create console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+        
+        # Create file handler
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        file_handler = logging.FileHandler(log_dir / "preprocessing.log")
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
 
     def load_data(self, rounds_path: str, fights_path: str, 
                  events_path: str, fighters_path: str) -> None:
@@ -113,16 +134,35 @@ class UFCDataPreprocessor:
         # Calculate age at time of fight
         age = (current_date - fighter_data['fighter_dob']).days / 365.25
         
+        # Calculate form score before calculating other stats
+        fighter_results = []
+        for _, fight in fighter_fights.sort_values('event_date').iterrows():
+            is_win = fight['winner'] == fighter_id
+            fighter_results.append(is_win)
+        
+        form_score = self.calculate_form_score(fighter_results)
+        
+        # Convert measurements to inches for consistency
+        height_cm = fighter_data['fighter_height_cm']
+        reach_cm = fighter_data['fighter_reach_cm']
+        
+        height_inches = height_cm / 2.54 if height_cm else 0
+        reach_inches = reach_cm / 2.54 if reach_cm else 0
+        
+        # Just use the raw control time for now
+        control_time = fighter_rounds['ctrl_time'].apply(self._convert_control_time).mean() if len(fighter_rounds) > 0 else 0
+        
         # Create stats dictionary with the exact names needed for fighter_stats.csv
         stats = {
             'total_fights': total_fights,
             'win_ratio': wins / total_fights if total_fights > 0 else 0,
-            'recent_win_ratio': None, # Will be calculated later
-            'height': fighter_data['fighter_height_cm'],
+            'recent_win_ratio': None,  # Will be calculated later
+            'height': height_inches,
             'weight': fighter_data['fighter_weight_lbs'],
-            'reach': fighter_data['fighter_reach_cm'],
+            'reach': reach_inches,
             'stance': fighter_data['fighter_stance'],
             'age': age,
+            'form_score': form_score,
             'avg_strikes_landed': fighter_rounds['strikes_succ'].sum() / total_fights if total_fights > 0 else 0,
             'avg_strikes_attempted': fighter_rounds['strikes_att'].sum() / total_fights if total_fights > 0 else 0,
             'avg_strikes_accuracy': fighter_rounds['strikes_succ'].sum() / fighter_rounds['strikes_att'].sum() if fighter_rounds['strikes_att'].sum() > 0 else 0,
@@ -130,12 +170,48 @@ class UFCDataPreprocessor:
             'avg_takedown_accuracy': fighter_rounds['takedown_succ'].sum() / fighter_rounds['takedown_att'].sum() if fighter_rounds['takedown_att'].sum() > 0 else 0,
             'avg_knockdowns': fighter_rounds['knockdowns'].sum() / total_fights if total_fights > 0 else 0,
             'ko_ratio': sum(fighter_fights['result'] == 'KO/TKO') / total_fights if total_fights > 0 else 0,
-            'avg_control_time': fighter_rounds['ctrl_time'].apply(self._convert_control_time).mean() if len(fighter_rounds) > 0 else 0,
+            'avg_control_time': control_time,  # Using raw control time
         }
         
         # Calculate form score (last 3 fights)
         recent_fights = fighter_fights.sort_values('event_date', ascending=False).head(3)
         stats['recent_win_ratio'] = sum(recent_fights['winner'] == fighter_id) / len(recent_fights) if len(recent_fights) > 0 else 0
+        
+        # Calculate strike stats by location
+        location_mapping = {
+            'head': ('head_strikes_succ', 'head_strikes_att'),
+            'body': ('body_strikes_succ', 'body_strikes_att'),
+            'leg': ('leg_strikes_succ', 'leg_strikes_att')
+        }
+        
+        for location, (succ_col, att_col) in location_mapping.items():
+            landed = fighter_rounds[succ_col].sum()
+            attempted = fighter_rounds[att_col].sum()
+            accuracy = landed / attempted if attempted > 0 else 0
+            per_round = landed / len(fighter_rounds) if len(fighter_rounds) > 0 else 0
+            
+            stats.update({
+                f'{location}_accuracy': accuracy,
+                f'{location}_per_round': per_round
+            })
+        
+        # Calculate strike stats by position
+        position_mapping = {
+            'distance': ('distance_strikes_succ', 'distance_strikes_att'),
+            'clinch': ('clinch_strikes_succ', 'clinch_strikes_att'),
+            'ground': ('ground_strikes_succ', 'ground_strikes_att')
+        }
+        
+        for position, (succ_col, att_col) in position_mapping.items():
+            landed = fighter_rounds[succ_col].sum()
+            attempted = fighter_rounds[att_col].sum()
+            accuracy = landed / attempted if attempted > 0 else 0
+            per_round = landed / len(fighter_rounds) if len(fighter_rounds) > 0 else 0
+            
+            stats.update({
+                f'{position}_accuracy': accuracy,
+                f'{position}_per_round': per_round
+            })
         
         return stats
 
@@ -198,14 +274,7 @@ class UFCDataPreprocessor:
         return pd.DataFrame(fight_stats)
 
     def _convert_control_time(self, time_str: str) -> int:
-        """Convert control time string (MM:SS) to seconds
-        
-        Args:
-            time_str (str): Time in MM:SS format
-            
-        Returns:
-            int: Total seconds
-        """
+        """Convert control time string (MM:SS) to seconds"""
         try:
             if pd.isna(time_str) or not isinstance(time_str, str):
                 return 0
@@ -218,30 +287,22 @@ class UFCDataPreprocessor:
         """Create final features using clean naming scheme"""
         features = []
         
-        # Create weight class mapping
-        weight_class_order = {
-            'Flyweight': 1,
-            'Bantamweight': 2,
-            'Featherweight': 3,
-            'Lightweight': 4,
-            'Welterweight': 5,
-            'Middleweight': 6,
-            'Light Heavyweight': 7,
-            'Heavyweight': 8
-        }
-        
         for _, fight in fight_stats.iterrows():
-            # Create base feature dict with clean names
             feature = {
                 'win': 1 if fight['winner'] == fight['fighter1_name'] else 0,
-                'weight_class': weight_class_order.get(fight['weight_class'], 0),  # Add weight class as a feature
+                
+                # Physical differences
                 'height_diff': fight['fighter1_height'] - fight['fighter2_height'],
                 'reach_diff': fight['fighter1_reach'] - fight['fighter2_reach'],
                 'age_diff': fight['fighter1_age'] - fight['fighter2_age'],
+                
+                # Form and experience
+                'fighter_form_score': fight['fighter1_form_score'],
+                'opponent_form_score': fight['fighter2_form_score'],
                 'fighter_fight_no': fight['fighter1_fight_no'],
                 'opponent_fight_no': fight['fighter2_fight_no'],
                 
-                # Basic stats
+                # Win ratios
                 'fighter_win_ratio': fight['fighter1_win_ratio'],
                 'fighter_recent_win_ratio': fight['fighter1_recent_win_ratio'],
                 'opponent_win_ratio': fight['fighter2_win_ratio'],
@@ -271,10 +332,49 @@ class UFCDataPreprocessor:
                 'fighter_control_time': fight['fighter1_avg_control_time'],
                 'opponent_control_time': fight['fighter2_avg_control_time'],
             }
-            
             features.append(feature)
         
-        return pd.DataFrame(features)
+        features_df = pd.DataFrame(features)
+        
+        # Log statistics for all numerical columns
+        self.logger.info("\n📊 Feature Statistics:")
+        for col in features_df.select_dtypes(include=[np.number]).columns:
+            stats = features_df[col].describe()
+            self.logger.info(f"\n{col}:")
+            self.logger.info(f"  Min: {stats['min']:.3f}")
+            self.logger.info(f"  Max: {stats['max']:.3f}")
+            self.logger.info(f"  Mean: {stats['mean']:.3f}")
+            self.logger.info(f"  Std: {stats['std']:.3f}")
+            
+            # Log distribution of values to check for uniformity
+            unique_count = features_df[col].nunique()
+            self.logger.info(f"  Unique values: {unique_count}")
+            
+            # If there are very few unique values, show their distribution
+            if unique_count < 10:
+                value_counts = features_df[col].value_counts()
+                self.logger.info("  Value distribution:")
+                for val, count in value_counts.items():
+                    self.logger.info(f"    {val}: {count} ({count/len(features_df)*100:.1f}%)")
+        
+        # Create histograms for key features
+        key_features = ['fighter_form_score', 'opponent_form_score', 
+                       'height_diff', 'reach_diff', 'age_diff',
+                       'fighter_win_ratio', 'opponent_win_ratio']
+        
+        plt.figure(figsize=(15, 10))
+        for i, feature in enumerate(key_features, 1):
+            plt.subplot(3, 3, i)
+            plt.hist(features_df[feature], bins=30)
+            plt.title(feature)
+            plt.xlabel('Value')
+            plt.ylabel('Count')
+        
+        plt.tight_layout()
+        plt.savefig(self.output_dir / 'feature_distributions.png')
+        plt.close()
+        
+        return features_df
 
     def _generate_fighter_stats(self) -> pd.DataFrame:
         """Generate career-level statistics for each fighter"""
@@ -336,7 +436,7 @@ class UFCDataPreprocessor:
             'height', 'weight', 'reach', 'stance', 'total_fights',
             'avg_strikes_landed', 'avg_strikes_attempted', 'avg_takedowns',
             'avg_knockdowns', 'avg_strikes_accuracy', 'avg_takedown_accuracy',
-            'ko_ratio', 'avg_control_time'
+            'ko_ratio', 'avg_control_time', 'form_score'
         ]
         
         fighter_stats_df = fighter_stats_df[columns_to_keep]
@@ -345,6 +445,28 @@ class UFCDataPreprocessor:
         fighter_stats_df.to_csv(self.output_dir / "fighter_stats.csv", index=False)
         
         return fighter_stats_df
+
+    def calculate_form_score(self, wins, max_fights=5):
+        """Calculate form score based on recent fight results"""
+        score = 0
+        coef = 0.5
+        
+        # Take only the last max_fights fights, reversed so most recent is first
+        recent_results = wins[-max_fights:][::-1]
+        
+        for win in recent_results:
+            if win:
+                score += coef
+            else:
+                score -= coef
+            coef -= 0.1
+        
+        # Log some debug info about form score calculation
+        self.logger.debug(f"Form score calculation:")
+        self.logger.debug(f"  Recent results: {recent_results}")
+        self.logger.debug(f"  Final score: {score}")
+        
+        return score
 
 def create_fight_with_stats_precomp(fights_df, fighter_stats_df):
     # ... existing code ...

@@ -13,6 +13,7 @@ import sys
 import json
 import matplotlib.pyplot as plt
 from scipy.stats import chi2_contingency
+import tensorflow as tf
 
 class UFCModelTrainer:
     def __init__(self, features_path: str = "data/processed/features.csv", 
@@ -100,10 +101,11 @@ class UFCModelTrainer:
         
         # Define our expected feature columns based on the new preprocessing
         self.feature_columns = [
-            # Fighter physical differences
+            # Physical differences
             'height_diff', 'reach_diff', 'age_diff',
             
-            # Experience
+            # Form and experience
+            'fighter_form_score', 'opponent_form_score',
             'fighter_fight_no', 'opponent_fight_no',
             
             # Win ratios
@@ -161,10 +163,10 @@ class UFCModelTrainer:
             self.logger.info(f"- {col}")
     
     def _train_neural_network(self):
-        """Train neural network model"""
+        """Train neural network model with architecture optimized for fight prediction"""
         model = Sequential([
             Dense(64, activation='relu', input_shape=(self.X_train.shape[1],)),
-            Dropout(0.2),
+            Dropout(0.3),
             Dense(32, activation='relu'),
             Dropout(0.2),
             Dense(16, activation='relu'),
@@ -177,21 +179,67 @@ class UFCModelTrainer:
             metrics=['accuracy']
         )
         
+        # Calculate class weights to handle any imbalance
+        class_counts = np.bincount(self.y_train)
+        total = len(self.y_train)
+        class_weights = {
+            0: total / (2 * class_counts[0]),
+            1: total / (2 * class_counts[1])
+        }
+        
         history = model.fit(
             self.X_train, self.y_train,
             epochs=100,
             batch_size=32,
             validation_split=0.2,
-            verbose=1
+            class_weight=class_weights,
+            verbose=1,
+            callbacks=[
+                tf.keras.callbacks.EarlyStopping(
+                    monitor='val_loss',
+                    patience=10,
+                    restore_best_weights=True
+                )
+            ]
         )
         
         self.nn_model = model
         self.training_results['neural_network_history'] = history.history
     
     def _train_logistic_regression(self):
-        """Train logistic regression model"""
-        self.log_reg = LogisticRegression(random_state=42)
+        """Train logistic regression model with proper scaling"""
+        # Scale features before training
+        self.log_reg = LogisticRegression(
+            C=0.1,  # Stronger regularization
+            class_weight='balanced',
+            max_iter=1000,
+            random_state=42
+        )
         self.log_reg.fit(self.X_train, self.y_train)
+        
+        # Analyze and log feature importance
+        self._analyze_feature_importance()
+    
+    def _analyze_feature_importance(self):
+        """Analyze and log feature importance from logistic regression"""
+        importance = pd.DataFrame({
+            'feature': self.feature_columns,
+            'importance': np.abs(self.log_reg.coef_[0])
+        })
+        importance = importance.sort_values('importance', ascending=False)
+        
+        self.logger.info("\n🔍 Feature Importance Analysis:")
+        for _, row in importance.head(10).iterrows():
+            self.logger.info(f"{row['feature']}: {row['importance']:.4f}")
+        
+        # Save feature importance plot
+        plt.figure(figsize=(12, 6))
+        plt.bar(importance['feature'].head(10), importance['importance'].head(10))
+        plt.xticks(rotation=45, ha='right')
+        plt.title('Top 10 Most Important Features')
+        plt.tight_layout()
+        plt.savefig(self.output_dir / 'feature_importance.png')
+        plt.close()
     
     def _evaluate_models(self):
         """Evaluate both models"""

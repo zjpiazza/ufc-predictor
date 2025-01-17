@@ -67,31 +67,24 @@ def train():
 @click.command()
 @click.option('--fighter1', '-f1', help='Name of first fighter')
 @click.option('--fighter2', '-f2', help='Name of second fighter')
-@click.option('--list-fighters', '-l', is_flag=True, help='List all available fighters')
-def predict(fighter1: Optional[str], fighter2: Optional[str], list_fighters: bool):
+def predict(fighter1: str, fighter2: str):
     """Predict the outcome of a UFC fight."""
     try:
-        # Get features for both fighters
         predictor = UFCPredictor()
-
-        prediction = predictor.predict_single_fight(fighter1, fighter2)
+        result = predictor.predict_single_fight(fighter1, fighter2)
         
-        # Print results with nice formatting
-        click.echo(f"\n🥊 Prediction for {click.style(fighter1, fg='blue')} vs {click.style(fighter2, fg='red')}:")
+        print(f"\n🥊 Prediction for {fighter1} vs {fighter2}:")
+        print(f"Predicted winner: {result['predicted_winner']}")
+        print(f"Confidence: {result['confidence']*100:.1f}%")
         
-        # Fix: Use the probability to determine the winner consistently
-        if prediction['probability_fighter1_wins'] > prediction['probability_fighter2_wins']:
-            winner = fighter1
-            confidence = prediction['probability_fighter1_wins']
-        else:
-            winner = fighter2
-            confidence = prediction['probability_fighter2_wins']
-
-        click.echo(f"Predicted winner: {click.style(winner, fg='green', bold=True)}")
-        click.echo(f"Confidence: {click.style(f'{confidence:.1%}', bold=True)}")
-        click.echo(f"\nWin probabilities:")
-        click.echo(f"{fighter1}: {prediction['probability_fighter1_wins']:.1%}")
-        click.echo(f"{fighter2}: {prediction['probability_fighter2_wins']:.1%}")
+        print(f"\nForm Scores:")
+        print(f"{fighter1}: {result['form_scores'][fighter1]:.2f}")
+        print(f"{fighter2}: {result['form_scores'][fighter2]:.2f}")
+        
+        print(f"\nWin probabilities:")
+        print(f"{fighter1}: {result['probability_fighter1_wins']*100:.1f}%")
+        print(f"{fighter2}: {result['probability_fighter2_wins']*100:.1f}%")
+        
     except ValueError as e:
         click.echo(f"Error making prediction: {str(e)}")
         if "Feature names seen at fit time" in str(e):

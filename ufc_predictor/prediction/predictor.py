@@ -83,6 +83,7 @@ class UFCPredictor:
                 'avg_knockdowns': float(fighter_df['avg_knockdowns'].iloc[0]),
                 'ko_ratio': float(fighter_df['ko_ratio'].iloc[0]),
                 'avg_control_time': float(fighter_df['avg_control_time'].iloc[0]),
+                'form_score': float(fighter_df['form_score'].iloc[0]),  # Add form score
             }
             return fighter
         except (KeyError, ValueError, IndexError) as e:
@@ -110,65 +111,57 @@ class UFCPredictor:
         # For scikit-learn models, get feature names from scaler
         return self.scaler.get_feature_names_out().tolist()
 
-    def predict(self, features_df):
-        """Make predictions for given features"""
-        if self.model is None or self.scaler is None:
-            raise RuntimeError("Model not loaded. Call load_model() first.")
+    def predict(self, fighter1_name: str, fighter2_name: str) -> dict:
+        """Predict winner of a fight between two fighters"""
         
-        # Get expected feature names from scaler
-        expected_features = set(self.scaler.get_feature_names_out())
-        provided_features = set(features_df.columns)
+        fighter1_features = self.get_fighter_features(fighter1_name)
+        fighter2_features = self.get_fighter_features(fighter2_name)
         
-        # Check for mismatches
-        missing_features = expected_features - provided_features
-        extra_features = provided_features - expected_features
+        if not fighter1_features or not fighter2_features:
+            raise ValueError(f"Could not find features for one or both fighters")
         
-        if missing_features or extra_features:
-            error_msg = "There seems to be a mismatch between model features and available data.\n"
-            if missing_features:
-                error_msg += "\nMissing features (required by model):\n- "
-                error_msg += "\n- ".join(sorted(missing_features))
-            if extra_features:
-                error_msg += "\n\nExtra features (not used by model):\n- "
-                error_msg += "\n- ".join(sorted(extra_features))
-            error_msg += "\n\nTry running 'ufc update' and 'ufc train' to refresh the model."
-            raise ValueError(error_msg)
+        # Get predictions from both models
+        nn_prob = self.nn_model.predict(fighter1_features)
+        lr_prob = self.log_reg.predict_proba(fighter1_features)
         
-        # Process features similar to training
-        X = features_df.copy()
+        # Average the probabilities
+        avg_prob = (nn_prob + lr_prob) / 2
         
-        # Scale features
-        X_scaled = self.scaler.transform(X)
+        # Get form scores for display
+        fighter1_form = fighter1_stats['form_score']
+        fighter2_form = fighter2_stats['form_score']
         
-        # Make prediction using scikit-learn model
-        probabilities = self.model.predict_proba(X_scaled)
-        predictions = self.model.predict(X_scaled)
-        
-        return [
-            {
-                'probability_fighter2_wins': float(prob[1]),
-                'probability_fighter1_wins': float(prob[0]),
-                'predicted_winner': 'fighter2' if pred == 1 else 'fighter1',
-                'confidence': float(max(prob))
+        # Create prediction result
+        result = {
+            'predicted_winner': fighter1_name if avg_prob > 0.5 else fighter2_name,
+            'confidence': max(avg_prob, 1 - avg_prob) * 100,
+            'probabilities': {
+                fighter1_name: avg_prob * 100,
+                fighter2_name: (1 - avg_prob) * 100
+            },
+            'form_scores': {
+                fighter1_name: fighter1_form,
+                fighter2_name: fighter2_form
             }
-            for prob, pred in zip(probabilities, predictions)
-        ]
-
-    def predict_single_fight(self, fighter_name: str, fighter_opponent_name: str):
-        """Make prediction for a single fight"""
-        fighter_features = self.get_fighter_features(fighter_name)
-        fighter_opponent_features = self.get_fighter_features(fighter_opponent_name)
+        }
         
-        if not fighter_features or not fighter_opponent_features:
+        return result
+
+    def predict_single_fight(self, fighter1_name: str, fighter2_name: str):
+        """Make prediction for a single fight"""
+        fighter1_features = self.get_fighter_features(fighter1_name)
+        fighter2_features = self.get_fighter_features(fighter2_name)
+        
+        if not fighter1_features or not fighter2_features:
             raise ValueError(f"Could not find features for one or both fighters")
         
         # Get expected feature names in correct order
         expected_features = self.scaler.get_feature_names_out()
         
         # Calculate differences
-        height_diff = fighter_features['height'] - fighter_opponent_features['height']
-        reach_diff = fighter_features['reach'] - fighter_opponent_features['reach']
-        age_diff = (fighter_features['age'] or 0) - (fighter_opponent_features['age'] or 0)
+        height_diff = fighter1_features['height'] - fighter2_features['height']
+        reach_diff = fighter1_features['reach'] - fighter2_features['reach']
+        age_diff = (fighter1_features['age'] or 0) - (fighter2_features['age'] or 0)
         
         # Create feature dictionary matching the model's expected features
         feature_dict = {
@@ -178,46 +171,58 @@ class UFCPredictor:
             'age_diff': age_diff,
             
             # Fighter features
-            'fighter_fight_no': fighter_features['total_fights'],
-            'fighter_win_ratio': fighter_features['win_ratio'],
-            'fighter_recent_win_ratio': fighter_features['recent_win_ratio'],
-            'fighter_strikes_landed': fighter_features['avg_strikes_landed'],
-            'fighter_strikes_attempted': fighter_features['avg_strikes_attempted'],
-            'fighter_strikes_accuracy': fighter_features['avg_strikes_accuracy'],
-            'fighter_takedowns': fighter_features['avg_takedowns'],
-            'fighter_takedown_accuracy': fighter_features['avg_takedown_accuracy'],
-            'fighter_knockdowns': fighter_features['avg_knockdowns'],
-            'fighter_ko_ratio': fighter_features['ko_ratio'],
-            'fighter_control_time': fighter_features['avg_control_time'],
+            'fighter_fight_no': fighter1_features['total_fights'],
+            'fighter_win_ratio': fighter1_features['win_ratio'],
+            'fighter_recent_win_ratio': fighter1_features['recent_win_ratio'],
+            'fighter_form_score': fighter1_features['form_score'],  # Add form score
+            'fighter_strikes_landed': fighter1_features['avg_strikes_landed'],
+            'fighter_strikes_attempted': fighter1_features['avg_strikes_attempted'],
+            'fighter_strikes_accuracy': fighter1_features['avg_strikes_accuracy'],
+            'fighter_takedowns': fighter1_features['avg_takedowns'],
+            'fighter_takedown_accuracy': fighter1_features['avg_takedown_accuracy'],
+            'fighter_knockdowns': fighter1_features['avg_knockdowns'],
+            'fighter_ko_ratio': fighter1_features['ko_ratio'],
+            'fighter_control_time': fighter1_features['avg_control_time'],
             
             # Opponent features
-            'opponent_fight_no': fighter_opponent_features['total_fights'],
-            'opponent_win_ratio': fighter_opponent_features['win_ratio'],
-            'opponent_recent_win_ratio': fighter_opponent_features['recent_win_ratio'],
-            'opponent_strikes_landed': fighter_opponent_features['avg_strikes_landed'],
-            'opponent_strikes_attempted': fighter_opponent_features['avg_strikes_attempted'],
-            'opponent_strikes_accuracy': fighter_opponent_features['avg_strikes_accuracy'],
-            'opponent_takedowns': fighter_opponent_features['avg_takedowns'],
-            'opponent_takedown_accuracy': fighter_opponent_features['avg_takedown_accuracy'],
-            'opponent_knockdowns': fighter_opponent_features['avg_knockdowns'],
-            'opponent_ko_ratio': fighter_opponent_features['ko_ratio'],
-            'opponent_control_time': fighter_opponent_features['avg_control_time'],
+            'opponent_fight_no': fighter2_features['total_fights'],
+            'opponent_win_ratio': fighter2_features['win_ratio'],
+            'opponent_recent_win_ratio': fighter2_features['recent_win_ratio'],
+            'opponent_form_score': fighter2_features['form_score'],  # Add form score
+            'opponent_strikes_landed': fighter2_features['avg_strikes_landed'],
+            'opponent_strikes_attempted': fighter2_features['avg_strikes_attempted'],
+            'opponent_strikes_accuracy': fighter2_features['avg_strikes_accuracy'],
+            'opponent_takedowns': fighter2_features['avg_takedowns'],
+            'opponent_takedown_accuracy': fighter2_features['avg_takedown_accuracy'],
+            'opponent_knockdowns': fighter2_features['avg_knockdowns'],
+            'opponent_ko_ratio': fighter2_features['ko_ratio'],
+            'opponent_control_time': fighter2_features['avg_control_time'],
         }
         
         # Create DataFrame with features in correct order
         features = pd.DataFrame([{name: feature_dict.get(name, 0) for name in expected_features}])
         
-        # Make prediction
-        prediction = self.predict(features)[0]
+        # Scale features
+        X_scaled = self.scaler.transform(features)
         
-        return {
-            'fighter1': fighter_name,
-            'fighter2': fighter_opponent_name,
-            'probability_fighter1_wins': prediction['probability_fighter1_wins'],
-            'probability_fighter2_wins': prediction['probability_fighter2_wins'],
-            'predicted_winner': fighter_name if prediction['predicted_winner'] == 'fighter1' else fighter_opponent_name,
-            'confidence': prediction['confidence']
+        # Get predictions
+        probabilities = self.model.predict_proba(X_scaled)[0]
+        
+        # Create result dictionary
+        result = {
+            'fighter1': fighter1_name,
+            'fighter2': fighter2_name,
+            'probability_fighter1_wins': float(probabilities[1]),  # Probability of fighter1 winning
+            'probability_fighter2_wins': float(probabilities[0]),  # Probability of fighter2 winning
+            'predicted_winner': fighter1_name if probabilities[1] > 0.5 else fighter2_name,
+            'confidence': float(max(probabilities)),
+            'form_scores': {
+                fighter1_name: fighter1_features['form_score'],
+                fighter2_name: fighter2_features['form_score']
+            }
         }
+        
+        return result
     
     def _determine_weight_class(self, weight_lbs):
         """Determine weight class based on weight"""

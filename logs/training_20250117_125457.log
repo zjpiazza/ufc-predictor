@@ -1,0 +1,147 @@
+2025-01-17 12:54:57,385 - 🥊 Starting UFC model training pipeline...
+2025-01-17 12:54:57,385 - 📊 Loading and preparing data...
+2025-01-17 12:54:57,391 - Found NaN values in the following columns:
+2025-01-17 12:54:57,392 - reach_diff: 1 NaN values
+2025-01-17 12:54:57,392 - Filling NaN values with 0
+2025-01-17 12:54:57,398 - Training samples: 1364, Test samples: 342
+2025-01-17 12:54:57,398 - Feature count: 27
+2025-01-17 12:54:57,398 - 
+Features used:
+2025-01-17 12:54:57,398 - - height_diff
+2025-01-17 12:54:57,398 - - reach_diff
+2025-01-17 12:54:57,398 - - age_diff
+2025-01-17 12:54:57,398 - - fighter_form_score
+2025-01-17 12:54:57,398 - - opponent_form_score
+2025-01-17 12:54:57,398 - - fighter_fight_no
+2025-01-17 12:54:57,398 - - opponent_fight_no
+2025-01-17 12:54:57,398 - - fighter_win_ratio
+2025-01-17 12:54:57,398 - - fighter_recent_win_ratio
+2025-01-17 12:54:57,398 - - opponent_win_ratio
+2025-01-17 12:54:57,398 - - opponent_recent_win_ratio
+2025-01-17 12:54:57,398 - - fighter_strikes_landed
+2025-01-17 12:54:57,398 - - fighter_strikes_attempted
+2025-01-17 12:54:57,398 - - fighter_strikes_accuracy
+2025-01-17 12:54:57,398 - - opponent_strikes_landed
+2025-01-17 12:54:57,398 - - opponent_strikes_attempted
+2025-01-17 12:54:57,399 - - opponent_strikes_accuracy
+2025-01-17 12:54:57,399 - - fighter_takedowns
+2025-01-17 12:54:57,399 - - fighter_takedown_accuracy
+2025-01-17 12:54:57,399 - - opponent_takedowns
+2025-01-17 12:54:57,399 - - opponent_takedown_accuracy
+2025-01-17 12:54:57,399 - - fighter_knockdowns
+2025-01-17 12:54:57,399 - - fighter_ko_ratio
+2025-01-17 12:54:57,399 - - opponent_knockdowns
+2025-01-17 12:54:57,399 - - opponent_ko_ratio
+2025-01-17 12:54:57,399 - - fighter_control_time
+2025-01-17 12:54:57,399 - - opponent_control_time
+2025-01-17 12:54:57,399 - 
+🧠 Training neural network...
+2025-01-17 12:55:01,411 - 
+📈 Training logistic regression...
+2025-01-17 12:55:01,416 - 
+🔍 Feature Importance Analysis:
+2025-01-17 12:55:01,416 - age_diff: 0.4170
+2025-01-17 12:55:01,416 - fighter_strikes_attempted: 0.1897
+2025-01-17 12:55:01,416 - fighter_strikes_landed: 0.1742
+2025-01-17 12:55:01,416 - opponent_strikes_landed: 0.1673
+2025-01-17 12:55:01,416 - opponent_takedowns: 0.1516
+2025-01-17 12:55:01,416 - fighter_form_score: 0.1302
+2025-01-17 12:55:01,416 - opponent_strikes_attempted: 0.1147
+2025-01-17 12:55:01,416 - opponent_fight_no: 0.0965
+2025-01-17 12:55:01,417 - opponent_ko_ratio: 0.0925
+2025-01-17 12:55:01,417 - fighter_takedowns: 0.0880
+2025-01-17 12:55:01,647 - 
+🎯 Evaluating models...
+2025-01-17 12:55:02,087 - 
+🎲 Random Baseline Validation - neural_network:
+2025-01-17 12:55:02,087 - Model Accuracy: 0.6140
+2025-01-17 12:55:02,087 - Random Baseline: 0.5000
+2025-01-17 12:55:02,087 - Chi-square statistic: 12.7667
+2025-01-17 12:55:02,087 - P-value: 0.0004
+2025-01-17 12:55:02,087 - ✅ Model performs significantly better than random (p < 0.05)
+2025-01-17 12:55:02,087 - Effect size (Cramer's V): 0.1932
+2025-01-17 12:55:02,160 - 
+🎲 Random Baseline Validation - logistic_regression:
+2025-01-17 12:55:02,160 - Model Accuracy: 0.6520
+2025-01-17 12:55:02,161 - Random Baseline: 0.5000
+2025-01-17 12:55:02,161 - Chi-square statistic: 27.3070
+2025-01-17 12:55:02,161 - P-value: 0.0000
+2025-01-17 12:55:02,161 - ✅ Model performs significantly better than random (p < 0.05)
+2025-01-17 12:55:02,161 - Effect size (Cramer's V): 0.2826
+2025-01-17 12:55:02,228 - Available columns in features.csv:
+2025-01-17 12:55:02,228 - win, height_diff, reach_diff, age_diff, fighter_form_score, opponent_form_score, fighter_fight_no, opponent_fight_no, fighter_win_ratio, fighter_recent_win_ratio, opponent_win_ratio, opponent_recent_win_ratio, fighter_strikes_landed, fighter_strikes_attempted, fighter_strikes_accuracy, opponent_strikes_landed, opponent_strikes_attempted, opponent_strikes_accuracy, fighter_takedowns, fighter_takedown_accuracy, opponent_takedowns, opponent_takedown_accuracy, fighter_knockdowns, fighter_ko_ratio, opponent_knockdowns, opponent_ko_ratio, fighter_control_time, opponent_control_time
+2025-01-17 12:55:02,228 - 
+🎯 Example Predictions - neural_network
+2025-01-17 12:55:02,228 - Overall Accuracy: 61.40%
+2025-01-17 12:55:02,228 - 
+✅ Sample Correct Predictions:
+2025-01-17 12:55:02,228 - Fight 1464: Predicted Loss (Actual: Loss)
+2025-01-17 12:55:02,228 - Fight 1088: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,228 - Fight 127: Predicted Loss (Actual: Loss)
+2025-01-17 12:55:02,228 - Fight 1328: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,229 - Fight 1699: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,229 - 
+❌ Sample Incorrect Predictions:
+2025-01-17 12:55:02,229 - Fight 606: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,229 - Fight 1232: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,229 - Fight 1656: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,229 - Fight 1194: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,229 - Fight 1679: Predicted Loss (Actual: Win)
+2025-01-17 12:55:02,233 - Available columns in features.csv:
+2025-01-17 12:55:02,233 - win, height_diff, reach_diff, age_diff, fighter_form_score, opponent_form_score, fighter_fight_no, opponent_fight_no, fighter_win_ratio, fighter_recent_win_ratio, opponent_win_ratio, opponent_recent_win_ratio, fighter_strikes_landed, fighter_strikes_attempted, fighter_strikes_accuracy, opponent_strikes_landed, opponent_strikes_attempted, opponent_strikes_accuracy, fighter_takedowns, fighter_takedown_accuracy, opponent_takedowns, opponent_takedown_accuracy, fighter_knockdowns, fighter_ko_ratio, opponent_knockdowns, opponent_ko_ratio, fighter_control_time, opponent_control_time
+2025-01-17 12:55:02,233 - 
+🎯 Example Predictions - logistic_regression
+2025-01-17 12:55:02,234 - Overall Accuracy: 65.20%
+2025-01-17 12:55:02,234 - 
+✅ Sample Correct Predictions:
+2025-01-17 12:55:02,234 - Fight 1464: Predicted Loss (Actual: Loss)
+2025-01-17 12:55:02,234 - Fight 1088: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,234 - Fight 127: Predicted Loss (Actual: Loss)
+2025-01-17 12:55:02,234 - Fight 1328: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,234 - Fight 1699: Predicted Win (Actual: Win)
+2025-01-17 12:55:02,234 - 
+❌ Sample Incorrect Predictions:
+2025-01-17 12:55:02,234 - Fight 606: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,234 - Fight 1232: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,234 - Fight 1528: Predicted Loss (Actual: Win)
+2025-01-17 12:55:02,234 - Fight 1656: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,234 - Fight 1194: Predicted Win (Actual: Loss)
+2025-01-17 12:55:02,234 - 
+💾 Saving models...
+2025-01-17 12:55:02,234 - You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+2025-01-17 12:55:02,245 - 
+📊 Model Performance:
+2025-01-17 12:55:02,245 - 
+Neural Network:
+2025-01-17 12:55:02,245 - Accuracy: 0.6140
+2025-01-17 12:55:02,245 - ROC AUC: 0.6449
+2025-01-17 12:55:02,245 - 
+Classification Report:
+2025-01-17 12:55:02,284 - 
+              precision    recall  f1-score   support
+
+           0       0.54      0.50      0.52       143
+           1       0.66      0.69      0.68       199
+
+    accuracy                           0.61       342
+   macro avg       0.60      0.60      0.60       342
+weighted avg       0.61      0.61      0.61       342
+
+2025-01-17 12:55:02,284 - 
+Logistic Regression:
+2025-01-17 12:55:02,284 - Accuracy: 0.6520
+2025-01-17 12:55:02,284 - ROC AUC: 0.6926
+2025-01-17 12:55:02,284 - 
+Classification Report:
+2025-01-17 12:55:02,287 - 
+              precision    recall  f1-score   support
+
+           0       0.58      0.60      0.59       143
+           1       0.71      0.69      0.70       199
+
+    accuracy                           0.65       342
+   macro avg       0.64      0.64      0.64       342
+weighted avg       0.65      0.65      0.65       342
+
+2025-01-17 12:55:02,287 - 
+🎉 Training pipeline completed successfully!
